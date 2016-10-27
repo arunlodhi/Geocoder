@@ -1,6 +1,29 @@
 CHANGELOG
 =========
 
+### 3.3.0 (2015-12-06)
+
+* Added: timezone field for `FreeGeoIp` provider
+* Added: guess method for street and suburb
+* Added: use city, town village or hamlet as locality
+* Added: return ISO 3166-2 region codes for the US and the rest of the world
+* Fixed: `AdminLevelCollection::checkLevel()` (#468)
+
+### 3.2.0 (2015-10-09)
+
+* Added: add __toString() methods in AdminLevel and Country
+* Added: __toString to StreamInterface mock
+* Fixed: postal code for GeoIP2 provider
+* Fixed: Make sure we check for an error in the response of the Yandex provider
+* Fixed: emergency message "You need to specify the country and region codes."
+
+### 3.1.0 (2015-08-13)
+
+* Added: show more API error messages in `GoogleMaps`
+* Fixed: require `http-adapter` `~0.8`
+* Fixed: use `https` transport in Yandex provider (#431)
+* Updated: documentation
+
 ### 3.0.0 (2015-04-20)
 
 * Added: Introduce a `CollectionIsEmpty` exception, thrown when `AddressCollection` is empty. (Fix #412)

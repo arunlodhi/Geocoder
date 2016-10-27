@@ -20,7 +20,7 @@ interface Geocoder
     /**
      * Version
      */
-    const VERSION = '3.0.1-dev';
+    const VERSION = '3.3.1-dev';
 
     /**
      * Geocodes a given value.
@@ -28,6 +28,7 @@ interface Geocoder
      * @param string $value
      *
      * @return AddressCollection
+     * @throws \Geocoder\Exception\Exception
      */
     public function geocode($value);
 
@@ -38,6 +39,7 @@ interface Geocoder
      * @param double $longitude
      *
      * @return AddressCollection
+     * @throws \Geocoder\Exception\Exception
      */
     public function reverse($latitude, $longitude);
 

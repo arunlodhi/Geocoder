@@ -127,6 +127,24 @@ class OpenCageTest extends TestCase
         $this->assertEquals('Europe/London' , $result->getTimezone());
     }
 
+    public function testReverseWithVillage()
+    {
+        if (!isset($_SERVER['OPENCAGE_API_KEY'])) {
+            $this->markTestSkipped('You need to configure the OPENCAGE_API_KEY value in phpunit.xml');
+        }
+
+        $provider = new OpenCage($this->getAdapter($_SERVER['OPENCAGE_API_KEY']), $_SERVER['OPENCAGE_API_KEY']);
+        $results  = $provider->reverse(49.1390924, 1.6572462);
+
+        $this->assertInstanceOf('Geocoder\Model\AddressCollection', $results);
+        $this->assertCount(1, $results);
+
+        /** @var \Geocoder\Model\Address $result */
+        $result = $results->first();
+        $this->assertInstanceOf('\Geocoder\Model\Address', $result);
+        $this->assertEquals('Bray-et-Lû', $result->getLocality());
+    }
+
     public function testGeocodeWithCity()
     {
         if (!isset($_SERVER['OPENCAGE_API_KEY'])) {
@@ -235,6 +253,47 @@ class OpenCageTest extends TestCase
         $this->assertEquals('GB', $result->getCountry()->getCode());
     }
 
+
+    /**
+     * @expectedException \Geocoder\Exception\QuotaExceeded
+     * @expectedExceptionMessage Valid request but quota exceeded.
+     */
+    public function testGeocodeQuotaExceeded()
+    {
+        $provider = new OpenCage(
+            $this->getMockAdapterReturns(
+                '{
+                    "status": {
+                        "code": 402,
+                        "message": "quota exceeded"
+                    }
+                }'
+            ),
+            'api_key'
+        );
+        $provider->geocode('New York');
+    }
+
+    /**
+     * @expectedException \Geocoder\Exception\InvalidCredentials
+     * @expectedExceptionMessage Invalid or missing api key.
+     */
+    public function testGeocodeInvalidApiKey()
+    {
+        $provider = new OpenCage(
+            $this->getMockAdapterReturns(
+                '{
+                    "status": {
+                        "code": 403,
+                        "message": "invalid API key"
+                    }
+                }'
+            ),
+            'api_key'
+        );
+        $provider->geocode('New York');
+    }
+
     /**
      * @expectedException \Geocoder\Exception\UnsupportedOperation
      * @expectedExceptionMessage The OpenCage provider does not support IP addresses, only street addresses.
@@ -273,17 +332,5 @@ class OpenCageTest extends TestCase
     {
         $provider = new OpenCage($this->getAdapter(), 'api_key');
         $provider->geocode('::ffff:74.200.247.59');
-    }
-}
-
-class OpenCageMock extends OpenCage
-{
-    /**
-     * Short circuits so assertions can inspect the
-     * executed query URL
-     */
-    protected function executeQuery($query)
-    {
-        return $query;
     }
 }

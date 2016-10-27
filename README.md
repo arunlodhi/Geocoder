@@ -7,10 +7,16 @@ Status](https://secure.travis-ci.org/geocoder-php/Geocoder.png)](http://travis-c
 Downloads](https://poser.pugx.org/willdurand/Geocoder/downloads.png)](https://packagist.org/packages/willdurand/Geocoder)
 [![Latest Stable
 Version](https://poser.pugx.org/willdurand/Geocoder/v/stable.png)](https://packagist.org/packages/willdurand/Geocoder)
+![PHP7 ready](https://img.shields.io/badge/PHP7-ready-green.svg)
 
-> **Important:** You are browsing the documentation of Geocoder **3.x**.
-Documentation for version **2.x** is available here: [Geocoder 2.x
-documentation](https://github.com/geocoder-php/Geocoder/blob/2.x/README.md).
+> **Important:** You are browsing the documentation of Geocoder **4.x** (not
+> released yet).
+>
+> Documentation for version **3.x** is available here: [Geocoder 3.x
+> documentation](https://github.com/geocoder-php/Geocoder/blob/3.x/README.md).
+>
+> Documentation for version **2.x** is available here: [Geocoder 2.x
+> documentation](https://github.com/geocoder-php/Geocoder/blob/2.x/README.md).
 
 ---
 
@@ -29,6 +35,7 @@ providing a powerful abstraction layer for geocoding manipulations.
       - [GeoIP2](#geoip2)
       - [GoogleMaps](#googlemaps)
       - [GoogleMapsBusiness](#googlemapsbusiness)
+      - [Mapzen](#mapzen)
       - [MaxMindBinary](#maxmindbinary)
       - [Nominatim](#nominatim)
       - [TomTom](#tomtom)
@@ -45,6 +52,7 @@ providing a powerful abstraction layer for geocoding manipulations.
   - [Formatters](#formatters)
 * [Extending Things](#extending-things)
 * [Versioning](#versioning)
+* [Cookbook](#cookbook)
 
 
 Installation
@@ -67,13 +75,13 @@ of [providers](#providers).
 
 Choose the one that fits your need first. Let's say the `GoogleMaps` one is what
 you were looking for, so let's see how to use it. In the code snippet below,
-`curl` has been choosen as [HTTP layer](#http-adapters) but it is up to you
+`curl` has been chosen as [HTTP layer](#http-adapters) but it is up to you
 since each HTTP-based provider implements
 [PSR-7](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-7-http-message.md).
 
 ```php
-$curl     = new \Ivory\HttpAdapter\CurlHttpAdapter();
-$geocoder = new \Geocoder\Provider\GoogleMaps($curl);
+$adapter  = new \Http\Adapter\Guzzle6\Client();
+$geocoder = new \Geocoder\Provider\GoogleMaps($adapter);
 
 $geocoder->geocode(...);
 $geocoder->reverse(...);
@@ -213,19 +221,19 @@ In order to talk to geocoding APIs, you need HTTP adapters. While it was part of
 the library in Geocoder 1.x and 2.x, Geocoder 3.x and upper now relies on the
 [PSR-7
 Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-7-http-message.md)
-which defines how HTTP message should be implemented. Choose any library that
-follows this PSR and implement the specified interfaces to use with Geocoder.
+which defines how HTTP message should be implemented. You can use any library to send HTTP messages
+that implements [php-http/client-implementation](https://packagist.org/providers/php-http/client-implementation).
 
-As making choices is rather hard, Geocoder ships with the
-[egeloen/http-adapter](https://github.com/egeloen/ivory-http-adapter) library by
-default, but it is up to you to choose a different implementation.
+To use Guzzle 6 you should run the follwing command:
 
-**Note:** not all providers are HTTP-based.
+```
+$ composer require php-http/guzzle6-adapter
+```
 
 ### Providers
 
 Providers perform the geocoding black magic for you (talking to the APIs,
-fetching results, dealing with errors, etc.) an are highly configurable.
+fetching results, dealing with errors, etc.) and are highly configurable.
 
 #### Address-based Providers
 
@@ -237,7 +245,8 @@ Chain | `chain` | | | | | meta provider which iterates over a list of providers
 [Geonames](http://www.geonames.org/commercial-webservices.html) | `geonames` | yes |no | worldwide | yes | requires registration, no free tier
 [Google Maps](https://developers.google.com/maps/documentation/geocoding/) | `google_maps` | yes | supported | worldwide | yes | requires API key. Limit 2500 requests per day
 [Google Maps for Business](https://developers.google.com/maps/documentation/business/) | `google_maps_business` | yes | supported | worldwide | yes | requires API key. Limit 100,000 requests per day
-[MapQuest](http://developer.mapquest.com/web/products/dev-services/geocoding-ws) | `map_quest` | yes | no | worldwide | yes | both open and [commercial service](http://platform.mapquest.com/geocoding/) require API key
+[MapQuest](http://developer.mapquest.com/web/products/dev-services/geocoding-ws) | `map_quest` | yes | no | worldwide | yes | both open and [commercial service](http://platform.mapquest.com/geocoding/) requires API key
+[Mapzen](https://mapzen.com/documentation/search/) | `mapzen` | yes | supported | worldwide | yes | requires API key; limited to 6 request/sec, 30,000 request/day
 [Nominatim](http://wiki.openstreetmap.org/wiki/Nominatim) | `nominatim` | yes | supported | worldwide | yes | requires a domain name (e.g. local installation)
 [OpenCage](http://geocoder.opencagedata.com/) | `opencage` | yes | supported | worldwide | yes | requires API key. 2500 requests/day free
 [OpenStreetMap](http://wiki.openstreetmap.org/wiki/Nominatim) | `openstreetmap` | yes | no | worldwide | yes | heavy users (>1q/s) get banned
@@ -294,6 +303,10 @@ $geocoder = new \Geocoder\Provider\GoogleMaps(
 A valid `Client ID` is required. The private key is optional. This provider also
 supports SSL, and extends the `GoogleMaps` provider.
 
+##### Mapzen
+
+A valid `API key` is required. This provider also supports SSL.
+
 ##### MaxMindBinary
 
 This provider requires a data file, and the
@@ -311,7 +324,7 @@ Page](http://wiki.openstreetmap.org/wiki/Nominatim) for more information.
 
 ##### TomTom
 
-The default langage-locale is `en`, you can choose between `de`, `es`, `fr`,
+The default language-locale is `en`, you can choose between `de`, `es`, `fr`,
 `it`, `nl`, `pl`, `pt` and `sv`.
 
 ##### Yandex
@@ -329,7 +342,7 @@ Provider  | Name | IPv4? | IPv6? | Multiple? | Terms | Notes
 [FreeGeoIp](http://freegeoip.net/) | `free_geo_ip` | yes | yes | no
 [GeoIPs](http://www.geoips.com/en/) | `geo_ips` | yes | no | no | requires API key
 [GeoIP2](https://www.maxmind.com/en/geoip2-databases) (Maxmind) | `maxmind_geoip2` | yes | yes | no
-[GeoPlugin](http://www.geoplugin.com/) | `geo_plugin` | yes | yes | no
+[GeoPlugin](http://www.geoplugin.com/) | `geo_plugin` | yes | yes | no
 [HostIp](http://www.hostip.info/use.html) | `host_ip` | yes | no | no
 [IpInfoDB](http://ipinfodb.com/) | `ip_info_db` | yes | no | no | requires API key | city precision
 Geoip | `geoip` | yes | no | no | | wrapper around the [PHP extension](http://php.net/manual/en/book.geoip.php) which must be installed
@@ -359,7 +372,7 @@ when a provider returns a result. The result is returned by `GoogleMaps` because
 
 ``` php
 $geocoder = new \Geocoder\ProviderAggregator();
-$adapter  = new \Ivory\HttpAdapter\CurlHttpAdapter();
+$adapter  = new \Http\Adapter\Guzzle6\Client();
 
 $chain = new \Geocoder\Provider\Chain([
     new \Geocoder\Provider\FreeGeoIp($adapter),
@@ -519,6 +532,14 @@ Major version `2` will reach **end of life on December 2015**.
 
 Version `3.x` is the current major stable version of Geocoder.
 
+Cookbook
+--------
+
+We have a small cookbook where you can find examples on common use cases:
+
+* [Caching responses](/docs/cookbook/cache.md)
+* [Configuring the HTTP client](/docs/cookbook/http-client.md)
+
 
 Contributing
 ------------
@@ -531,7 +552,7 @@ file.
 Unit Tests
 ----------
 
-In order to run the test suite, install the developement dependencies:
+In order to run the test suite, install the development dependencies:
 
 ```
 $ composer install --dev
